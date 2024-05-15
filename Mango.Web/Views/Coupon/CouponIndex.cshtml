@@ -48,7 +48,7 @@
                         <td>@Html.DisplayFor(modelItem => item.DiscountAmount)</td>
                         <td>@Html.DisplayFor(modelItem => item.MinAmount)</td>
                         <td>
-                            <a class="btn btn-danger">
+                            <a asp-action="DeleteCoupon" asp-route-couponId="@item.CouponId" class="btn btn-danger">
                                 <i class="bi bi-trash"></i>
                             </a>
                         </td>

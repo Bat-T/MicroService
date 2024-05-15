@@ -20,13 +20,30 @@ namespace Mango.Web.Service
                 var client = _httpClient.CreateClient();
                 HttpRequestMessage message = new();
                 message.Headers.Add("Accept", "application/json");
-
                 message.RequestUri = new Uri(dto.Url);
 
                 if (dto.Data != null)
                 {
                     message.Content = new StringContent(JsonConvert.SerializeObject(dto.Data), Encoding.UTF8, "application/json");
                 }
+
+                switch (dto.ApiType)
+                {
+                    case Utility.SD.ApiType.GET:
+                        message.Method = HttpMethod.Get;
+                        break;
+                    case Utility.SD.ApiType.POST:
+                        message.Method = HttpMethod.Post;
+                        break;
+                    case Utility.SD.ApiType.PUT:
+                        message.Method = HttpMethod.Put;
+                        break;
+                    case Utility.SD.ApiType.DELETE:
+                        message.Method = HttpMethod.Delete;
+                        break;
+
+                }
+
 
                 HttpResponseMessage response = await client.SendAsync(message);
 
