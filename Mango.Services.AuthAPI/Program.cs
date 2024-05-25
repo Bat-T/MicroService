@@ -1,5 +1,7 @@
 using Mango.Services.AuthAPI.Data;
 using Mango.Services.AuthAPI.Models;
+using Mango.Services.AuthAPI.Service;
+using Mango.Services.AuthAPI.Service.IService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +21,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
-
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
