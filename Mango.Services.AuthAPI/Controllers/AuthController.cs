@@ -1,5 +1,4 @@
-﻿using Mango.Services.AuthAPI.Data.DTO;
-using Mango.Services.AuthAPI.Models.DTO;
+﻿using Mango.Services.AuthAPI.Models.DTO;
 using Mango.Services.AuthAPI.Service.IService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -39,11 +38,26 @@ namespace Mango.Services.AuthAPI.Controllers
             if(loginResponse.User == null)
             {
                 _response.IsSuccess = false;
-                _response.Message = "Imvalid UserName or Password";
+                _response.Message = "Invalid UserName or Password";
                 return BadRequest(_response);
             }
             _response.IsSuccess = true;
             _response.Result = loginResponse;
+            return Ok(_response);
+        }
+
+        [HttpPost("AssignRole")]
+        public async Task<IActionResult> AssignRole(RegistrationRequestDTO requestDTO)
+        {
+            var loginResponse = await authService.AssignRole(requestDTO.Email,requestDTO.Role);
+            if (!loginResponse)
+            {
+                _response.IsSuccess = false;
+                _response.Message = "Error Occured";
+                return BadRequest(_response);
+            }
+            _response.IsSuccess = true;
+            _response.Result = "";
             return Ok(_response);
         }
     }

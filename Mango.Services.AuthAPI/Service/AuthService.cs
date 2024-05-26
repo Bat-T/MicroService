@@ -1,8 +1,9 @@
 ﻿using Mango.Services.AuthAPI.Data;
-using Mango.Services.AuthAPI.Data.DTO;
 using Mango.Services.AuthAPI.Models;
+using Mango.Services.AuthAPI.Models.DTO;
 using Mango.Services.AuthAPI.Service.IService;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Mango.Services.AuthAPI.Service
@@ -12,11 +13,13 @@ namespace Mango.Services.AuthAPI.Service
         private readonly AppDbContext db;
         private readonly UserManager<ApplicationUser> usermanager;
         private readonly RoleManager<IdentityRole> rolemanager;
+        private readonly IJwtTokenGenerator jwtTokenGenerator;
 
-        public AuthService(AppDbContext db, UserManager<ApplicationUser> user, RoleManager<IdentityRole> role)
+        public AuthService(AppDbContext db, UserManager<ApplicationUser> user, RoleManager<IdentityRole> role,IJwtTokenGenerator jwtTokenGenerator)
         {
             this.db = db;
             this.usermanager = user;
+            this.jwtTokenGenerator = jwtTokenGenerator;
             this.rolemanager = role;
         }
 
@@ -39,7 +42,7 @@ namespace Mango.Services.AuthAPI.Service
                                 Name = user.Name,
                                 PhoneNumber = user.PhoneNumber
                             },
-                            Token=""
+                            Token = jwtTokenGenerator.GenerateToken(user)
                         };
                     }
                 }
@@ -89,6 +92,19 @@ namespace Mango.Services.AuthAPI.Service
             {
             }
             return "Error Encountered";
+        }
+
+        public async Task<bool> AssignRole(string user,string role)
+        {
+            var userDb = await usermanager.Users.FirstOrDefaultAsync(x => x.Email == user);
+            if (userDb == null)
+                return false;
+            if (!await rolemanager.RoleExistsAsync(role))
+                await rolemanager.CreateAsync(new IdentityRole(role));
+
+            await usermanager.AddToRoleAsync(userDb, role);
+
+            return true;
         }
     }
 }

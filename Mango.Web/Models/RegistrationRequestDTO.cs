@@ -1,4 +1,4 @@
-﻿namespace Mango.Services.AuthAPI.Data.DTO
+﻿namespace Mango.Web.Models
 {
     public class RegistrationRequestDTO
     {
@@ -6,5 +6,6 @@
         public string Name { get; set; }
         public string PhoneNumber { get; set; }
         public string PassWord { get; set; }
+        public string Role { get; set; }
     }
 }
