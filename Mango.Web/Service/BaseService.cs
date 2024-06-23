@@ -8,18 +8,25 @@ namespace Mango.Web.Service
     public class BaseService : IBaseService
     {
         private readonly IHttpClientFactory _httpClient;
-        public BaseService(IHttpClientFactory httpClient)
+        private readonly ITokenProvider tokenProvider;
+        public BaseService(IHttpClientFactory httpClient,ITokenProvider tokenProvider)
         {
             _httpClient = httpClient;
+            this.tokenProvider = tokenProvider;
         }
 
-        public async Task<ResponseDTO?> SendAsync(RequestDTO dto)
+        public async Task<ResponseDTO?> SendAsync(RequestDTO dto,bool isBearer = true)
         {
             try
             {
                 var client = _httpClient.CreateClient();
                 HttpRequestMessage message = new();
                 message.Headers.Add("Accept", "application/json");
+                if(isBearer)
+                {
+                    var token = tokenProvider.GetToken();
+                    message.Headers.Add("Authorization", $"Bearer {token}");
+                }
                 message.RequestUri = new Uri(dto.Url);
 
                 if (dto.Data != null)
@@ -52,7 +59,7 @@ namespace Mango.Web.Service
                     case System.Net.HttpStatusCode.NotFound:
                         return new ResponseDTO() { IsSuccess = false, Message = "Not Found" };
                     case System.Net.HttpStatusCode.Unauthorized:
-                        return new ResponseDTO() { IsSuccess = false, Message = "UnAuthorized" };
+                        return new ResponseDTO() { IsSuccess = false, Message = "Unauthorized" };
                     case System.Net.HttpStatusCode.Forbidden:
                         return new ResponseDTO() { IsSuccess = false, Message = "Forbidden" };
                     case System.Net.HttpStatusCode.InternalServerError:

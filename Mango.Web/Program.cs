@@ -9,6 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
+
+
+SD.CouponAPIBase = builder.Configuration["ServiceUrls:CouponAPI"] ?? "";
+SD.AuthAPIBase = builder.Configuration["ServiceUrls:AuthAPI"] ?? "";
+SD.ProductAPIBase = builder.Configuration["ServiceUrls:ProductAPI"] ?? "";
+
+builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -17,14 +24,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Auth/AccessDenied";
     });
 builder.Services.AddHttpClient<ICouponService, CouponService>();
-
-SD.CouponAPIBase = builder.Configuration["ServiceUrls:CouponAPI"] ?? "";
-SD.AuthAPIBase = builder.Configuration["ServiceUrls:AuthAPI"] ?? "";
-
-builder.Services.AddScoped<ITokenProvider, TokenProvider>();
+builder.Services.AddHttpClient<IProductService, ProductService>();
 builder.Services.AddScoped<IBaseService, BaseService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 

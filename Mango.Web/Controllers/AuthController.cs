@@ -1,4 +1,5 @@
 ﻿using Mango.Web.Models;
+using Mango.Web.Service;
 using Mango.Web.Service.IService;
 using Mango.Web.Utility;
 using Microsoft.AspNetCore.Authentication;
@@ -38,6 +39,7 @@ namespace Mango.Web.Controllers
             {
                 LoginResponseDTO response = JsonConvert.DeserializeObject<LoginResponseDTO>(Convert.ToString(loginresponse?.Result));
                 await SignInUser(response);
+                tokenProvider.SetToken(response.Token);
                 TempData["success"] = "Login Successful";
                 return RedirectToAction("Index","Home");
             }

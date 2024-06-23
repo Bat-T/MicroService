@@ -41,18 +41,21 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model)
+                @if (Model is not null)
                 {
-                    <tr>
-                        <td>@Html.DisplayFor(modelItem => item.CouponCode)</td>
-                        <td>@Html.DisplayFor(modelItem => item.DiscountAmount)</td>
-                        <td>@Html.DisplayFor(modelItem => item.MinAmount)</td>
-                        <td>
-                            <a asp-action="DeleteCoupon" asp-route-couponId="@item.CouponId" class="btn btn-danger">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                        </td>
-                    </tr>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.CouponCode)</td>
+                            <td>@Html.DisplayFor(modelItem => item.DiscountAmount)</td>
+                            <td>@Html.DisplayFor(modelItem => item.MinAmount)</td>
+                            <td>
+                                <a asp-action="DeleteCoupon" asp-route-couponId="@item.CouponId" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
                 }
 
             </tbody>

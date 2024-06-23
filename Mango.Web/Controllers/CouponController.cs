@@ -1,5 +1,6 @@
 ﻿using Mango.Web.Models;
 using Mango.Web.Service.IService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -16,7 +17,7 @@ namespace Mango.Web.Controllers
 
         public async Task<IActionResult> CouponIndex()
         {
-            List<CouponDTO?> couponDTOs = new();
+            List<CouponDTO?> couponDTOs = [];
 
             var response = await _couponService.GetAllCouponAsync();
 
@@ -25,6 +26,7 @@ namespace Mango.Web.Controllers
                 couponDTOs = JsonConvert.DeserializeObject<List<CouponDTO>>(Convert.ToString(response.Result));
                 return View(couponDTOs);
             }
+            TempData["error"] = response?.Message;
             return View();
         }
 
@@ -34,6 +36,7 @@ namespace Mango.Web.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles ="ADMIN")]
         public async Task<IActionResult> CreateCoupon(CouponDTO model)
         {
             
@@ -51,7 +54,7 @@ namespace Mango.Web.Controllers
                     TempData["error"] = response?.Message;
                 }
             }
-            return RedirectToAction("CouponCreate");
+            return RedirectToAction("CreateCoupon");
         }
 
         public async Task<IActionResult> DeleteCoupon(int couponId)
