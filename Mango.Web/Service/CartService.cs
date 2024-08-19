@@ -4,7 +4,7 @@ using Mango.Web.Utility;
 
 namespace Mango.Web.Service
 {
-    public class CartService: ICartService
+    public class CartService : ICartService
     {
         private readonly IBaseService baseService;
 
@@ -13,13 +13,23 @@ namespace Mango.Web.Service
             this.baseService = baseService;
         }
 
-        public async Task<ResponseDTO?> ApplyCoupon(CouponDTO coupon)
+        public async Task<ResponseDTO?> ApplyCoupon(CartDto coupon)
         {
             return await baseService.SendAsync(new RequestDTO()
             {
                 ApiType = Utility.SD.ApiType.POST,
                 Data = coupon,
                 Url = SD.ShoppingCartAPIBase + "/api/cart/ApplyCoupon"
+            }, true);
+        }
+
+        public async Task<ResponseDTO?> EmailCouponRequest(CartDto coupon)
+        {
+            return await baseService.SendAsync(new RequestDTO()
+            {
+                ApiType = Utility.SD.ApiType.POST,
+                Data = coupon,
+                Url = SD.ShoppingCartAPIBase + "/api/cart/EmailCartRequest"
             }, true);
         }
 
