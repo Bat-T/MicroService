@@ -23,7 +23,7 @@ namespace Mango.Web.Service
             }, true);
         }
 
-        public async Task<ResponseDTO?> EmailCouponRequest(CartDto coupon)
+        public async Task<ResponseDTO?> EmailCartRequest(CartDto coupon)
         {
             return await baseService.SendAsync(new RequestDTO()
             {
