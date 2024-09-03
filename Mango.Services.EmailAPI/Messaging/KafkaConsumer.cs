@@ -11,17 +11,21 @@ namespace Mango.Services.EmailAPI.Messaging
     {
         private readonly ILogger<KafkaConsumer> _logger;
         private readonly IConsumer<Ignore, string> _consumer;
-        private readonly string _topic;
+        private readonly IConsumer<Ignore, string> _registrationconsumer;
+        private readonly string _emailtopic;
+        private readonly string _registrationtopic;
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
-        private Task _executetask;
+        private List<Task> _executetasks;
 
         public KafkaConsumer(IConfiguration configuration, ILogger<KafkaConsumer> logger, EmailService emailService)
         {
             _configuration = configuration;
             _logger = logger;
             _emailService = emailService;
-            _topic = _configuration["TopicAndQueueNames:EmailShoppingCartQueue"] ?? throw new ArgumentNullException();
+            _emailtopic = _configuration["TopicAndQueueNames:EmailShoppingCartQueue"] ?? throw new ArgumentNullException();
+            _registrationtopic = _configuration["TopicAndQueueNames:RegisterUserQueue"] ?? throw new ArgumentNullException();
+
             var config = new ConsumerConfig
             {
                 GroupId = "kafka-consumer-group",
@@ -30,14 +34,16 @@ namespace Mango.Services.EmailAPI.Messaging
             };
 
             _consumer = new ConsumerBuilder<Ignore, string>(config).Build();
-            _executetask = Task.CompletedTask;
+            _registrationconsumer = new ConsumerBuilder<Ignore, string>(config).Build();
+            _executetasks = new List<Task>();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _consumer.Subscribe(_topic);
-            _executetask = Task.Run(() => ConsumeMessage(stoppingToken), stoppingToken);
-            _ = _executetask;
+            _consumer.Subscribe(_emailtopic);
+            _registrationconsumer.Subscribe(_registrationtopic);
+            _executetasks = new List<Task>() { Task.Run(() => ConsumeMessage(stoppingToken), stoppingToken), Task.Run(() => OnUserRegisterRequestReceived(stoppingToken), stoppingToken) };
+            _ = _executetasks;
         }
         private async Task ConsumeMessage(CancellationToken stoppingToken)
         {
@@ -67,18 +73,26 @@ namespace Mango.Services.EmailAPI.Messaging
 
         private async Task OnUserRegisterRequestReceived(CancellationToken stoppingToken)
         {
-            var body = Encoding.UTF8.GetString(message.Body);
-
-            string email = JsonConvert.DeserializeObject<string>(body);
-            try
+            while (!stoppingToken.IsCancellationRequested)
             {
-                //TODO - try to log email
-                await _emailService.RegisterUserEmailAndLog(email);
+                try
+                {
+                    var consumeResult = _registrationconsumer.Consume(stoppingToken);
+                    string email = JsonConvert.DeserializeObject<string>(consumeResult.Message.Value);
+                    await _emailService.RegisterUserEmailAndLog(email);
+                    _logger.LogInformation($"Consumed message '{consumeResult.Message.Value}' at: '{consumeResult.TopicPartitionOffset}'.");
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("Consumer cancellation requested.");
+                    break;
+                }
+                catch (ConsumeException e)
+                {
+                    _logger.LogError($"Error occurred: {e.Error.Reason}");
+                }
             }
-            catch (Exception ex)
-            {
-                throw;
-            }
+            return;
         }
 
 
